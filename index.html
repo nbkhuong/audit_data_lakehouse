@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>German Election 2025 Data Lakehouse - Security Audit Report</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; line-height: 1.6; background: #f8f9fa; color: #333; }
+    header { background: #003366; color: #fff; padding: 2rem; text-align: center; }
+    header h1 { font-size: 2.5rem; }
+
+    /* --- Modern Navigation Bar --- */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: #00509e;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .nav-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1100px;
+      margin: auto;
+      padding: 0.5rem 1rem;
+    }
+    .nav-logo {
+      color: #fff;
+      font-size: 1.5rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .nav-menu {
+      list-style: none;
+      display: flex;
+      gap: 1.5rem;
+    }
+    .nav-menu li a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+    .nav-menu li a:hover {
+      color: #ffcc00;
+    }
+    .nav-toggle {
+      display: none;
+      font-size: 2rem;
+      color: #fff;
+      cursor: pointer;
+    }
+    @media (max-width: 768px) {
+      .nav-menu {
+        flex-direction: column;
+        background: #00509e;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        display: none;
+        padding: 1rem 0;
+      }
+      .nav-menu.active { display: flex; }
+      .nav-toggle { display: block; }
+    }
+    html { scroll-behavior: smooth; }
+
+    section { padding: 2rem; max-width: 1100px; margin: auto; }
+    h2 { color: #00509e; margin-bottom: 1rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+    .card { background: #fff; padding: 1.5rem; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    ul { list-style: disc inside; }
+    footer { background: #003366; color: #fff; text-align: center; padding: 1.5rem; margin-top: 2rem; }
+    .attachments p { margin-bottom: 0.5rem; }
+    .attachments a { display: block; margin: 0.3rem 0; color: #00509e; text-decoration: none; font-weight: bold; }
+    .attachments a:hover { text-decoration: underline; }
+
+    /* Accordion Styles */
+    .accordion { background: #00509e; color: #fff; cursor: pointer; padding: 1rem; margin-top: 1rem; border: none; width: 100%; text-align: left; font-size: 1rem; font-weight: bold; border-radius: 5px; transition: background 0.3s; }
+    .accordion:hover { background: #003f7f; }
+    .accordion:after { content: '+'; float: right; }
+    .accordion.active:after { content: '-'; }
+    .panel { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; background: #e9ecef; padding: 0 1rem; border-radius: 5px; margin-bottom: 1rem; }
+    .panel a { color: #003366; padding: 0.5rem 0; display: block; font-weight: normal; }
+
+    /* Workflow List Alignment */
+    .workflow-list { margin-left: 1.2rem; padding-left: 1rem; }
+    .workflow-list li { margin-bottom: 1rem; line-height: 1.5; }
+    .workflow-list ul { margin-top: 0.5rem; margin-left: 1.5rem; list-style: disc; }
+
+    /* Statistics Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .stat-card {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      text-align: center;
+      border-left: 5px solid #00509e;
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #00509e;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      color: #666;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    /* Risk Cards with Colors */
+    .risk-high { border-left-color: #dc3545; }
+    .risk-high .risk-badge { background: #dc3545; color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem; font-weight: bold; display: inline-block; margin-bottom: 1rem; }
+
+    .risk-medium { border-left-color: #fd7e14; }
+    .risk-medium .risk-badge { background: #fd7e14; color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem; font-weight: bold; display: inline-block; margin-bottom: 1rem; }
+
+    .risk-low { border-left-color: #007bff; }
+    .risk-low .risk-badge { background: #007bff; color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem; font-weight: bold; display: inline-block; margin-bottom: 1rem; }
+
+    /* Compliance Status Table */
+    .compliance-table {
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      margin: 1rem 0;
+    }
+
+    .compliance-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      border-left: 4px solid;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .compliance-row:last-child {
+      border-bottom: none;
+    }
+
+    .compliance-description {
+      font-weight: 500;
+    }
+
+    .compliance-count {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #333;
+      padding: 0.5rem 1rem;
+      background: #f8f9fa;
+      border-radius: 20px;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .compliance-row.compliant { border-left-color: #28a745; }
+    .compliance-row.partial { border-left-color: #ffc107; }
+    .compliance-row.non-compliant { border-left-color: #dc3545; }
+    .compliance-row.not-applicable { border-left-color: #6c757d; }
+
+    /* Timeline Styles */
+    .timeline-item {
+      background: #fff;
+      margin: 1rem 0;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border-left: 5px solid #00509e;
+    }
+
+    .timeline-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .phase-badge {
+      background: #00509e;
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      margin-right: 1rem;
+    }
+
+    .timeline-title {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #00509e;
+    }
+
+    .timeline-meta {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Tech Stack */
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+
+    .tech-item {
+      background: #00509e;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    /* Audit Info Grid */
+    .audit-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 2rem 0;
+      background: rgba(255,255,255,0.1);
+      padding: 1.5rem;
+      border-radius: 10px;
+    }
+
+    .audit-detail {
+      text-align: center;
+    }
+
+    .audit-detail-label {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      margin-bottom: 0.5rem;
+    }
+
+    .audit-detail-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) { 
+      header h1 { font-size: 2rem; }
+      .stats-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+      .timeline-header { flex-direction: column; align-items: flex-start; }
+      .phase-badge { margin-bottom: 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>German Election 2025 Data Lakehouse</h1>
+    <p>Comprehensive Security Assessment & Compliance Review</p>
+    
+    <div class="audit-info">
+      <div class="audit-detail">
+        <div class="audit-detail-label">Audit Date</div>
+        <div class="audit-detail-value">July 17, 2025</div>
+      </div>
+      <div class="audit-detail">
+        <div class="audit-detail-label">Auditor</div>
+        <div class="audit-detail-value">Khuong Nguyen</div>
+      </div>
+      <div class="audit-detail">
+        <div class="audit-detail-label">Standards</div>
+        <div class="audit-detail-value">ISO 27001, NIST 800-53, GDPR</div>
+      </div>
+      <div class="audit-detail">
+        <div class="audit-detail-label">Status</div>
+        <div class="audit-detail-value">Approved - July 20, 2025</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo" onclick="window.scrollTo({top:0,behavior:'smooth'})">🔐 Security Audit</div>
+      <div class="nav-toggle" id="nav-toggle">&#9776;</div>
+      <ul class="nav-menu" id="nav-menu">
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#metrics">Metrics</a></li>
+        <li><a href="#infrastructure">Infrastructure</a></li>
+        <li><a href="#compliance">Compliance</a></li>
+        <li><a href="#risk">Risk Assessment</a></li>
+        <li><a href="#recommendations">Recommendations</a></li>
+        <li><a href="#timeline">Timeline</a></li>
+        <li><a href="#attachments">Deliverables</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <section id="overview">
+    <h2>Overview</h2>
+    <p><strong>German Election 2025 Data Lakehouse</strong> is a sophisticated data analytics platform designed to collect, process, and analyze survey data related to the 2025 German federal elections. Built with modern technologies including Docker, Apache Spark, Apache Airflow, and PostgreSQL, this project establishes an efficient Extract, Load, Transform (ELT) pipeline.</p>
+    
+    <p>This comprehensive security audit evaluated the project against established security frameworks including ISO 27001, NIST 800-53, and GDPR compliance requirements, identifying critical vulnerabilities and providing structured remediation recommendations.</p>
+
+    <div class="tech-stack">
+      <div class="tech-item">Docker</div>
+      <div class="tech-item">Apache Spark</div>
+      <div class="tech-item">Apache Airflow</div>
+      <div class="tech-item">PostgreSQL</div>
+      <div class="tech-item">MinIO</div>
+      <div class="tech-item">GitHub Pages</div>
+    </div>
+  </section>
+
+  <section id="metrics">
+    <h2>Key Audit Metrics</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">36</div>
+        <div class="stat-label">Total Controls Assessed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">7</div>
+        <div class="stat-label">Compliant Controls</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">23</div>
+        <div class="stat-label">Non-Compliant Controls</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">19.4%</div>
+        <div class="stat-label">Overall Compliance Rate</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">3</div>
+        <div class="stat-label">High Risk Vulnerabilities</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">140-200</div>
+        <div class="stat-label">Remediation Hours</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="infrastructure">
+    <h2>Infrastructure Architecture Overview</h2>
+    <p>The data lakehouse is built on a comprehensive architecture designed for efficient data processing and analytics. The current setup includes:</p>
+    <ul>
+      <li><strong>Three-Zone Lakehouse Architecture</strong> with Landing, Trusted, and Curated data layers using MinIO object storage.</li>
+      <li><strong>Docker-based Infrastructure</strong> hosting all services including Airflow, Spark, and PostgreSQL.</li>
+      <li><strong>GPU Computing Cluster</strong> with RTX A2000 12GB for accelerated data processing.</li>
+      <li><strong>On-premise Deployment</strong> on Lenovo P340 Tiny host with controlled environment access.</li>
+      <li><strong>Public-facing Website</strong> hosted on GitHub Pages with HTTPS enforcement.</li>
+      <li><strong>PostgreSQL Database</strong> for querying and analytics with basic logging capabilities.</li>
+      <li><strong>Network Configuration</strong> with services exposed on localhost ports (8080, 9090, 9091).</li>
+    </ul>
+    <p>This infrastructure processes public German election survey data through an automated ELT pipeline, providing visualization and analytics capabilities through a web interface.</p>
+  </section>
+
+  <section id="compliance">
+    <h2>Compliance Status Overview</h2>
+    <p>Out of 36 controls assessed across six primary categories, the project demonstrates the following compliance posture:</p>
+    
+    <div class="compliance-table">
+      <div class="compliance-row compliant">
+        <div class="compliance-description">
+          <strong>Compliant Controls</strong><br>
+          <span style="color: #666; font-size: 0.9rem;">Appropriate technology architecture, secure HTTPS deployment, proper handling of public data</span>
+        </div>
+        <div class="compliance-count">7 (19.4%)</div>
+      </div>
+      <div class="compliance-row partial">
+        <div class="compliance-description">
+          <strong>Partially Compliant</strong><br>
+          <span style="color: #666; font-size: 0.9rem;">Basic capabilities exist but lack comprehensive implementation</span>
+        </div>
+        <div class="compliance-count">6 (16.7%)</div>
+      </div>
+      <div class="compliance-row non-compliant">
+        <div class="compliance-description">
+          <strong>Non-Compliant</strong><br>
+          <span style="color: #666; font-size: 0.9rem;">Significant gaps requiring immediate remediation</span>
+        </div>
+        <div class="compliance-count">23 (63.9%)</div>
+      </div>
+      <div class="compliance-row not-applicable">
+        <div class="compliance-description">
+          <strong>Not Applicable</strong><br>
+          <span style="color: #666; font-size: 0.9rem;">Controls not relevant due to single-user deployment and public data nature</span>
+        </div>
+        <div class="compliance-count">6 (16.7%)</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="risk">
+    <h2>Risk Assessment Findings</h2>
+    <div class="grid">
+      <div class="card risk-high">
+        <div class="risk-badge">HIGH RISK</div>
+        <h3>Critical Vulnerabilities (3 Controls)</h3>
+        <ul>
+          <li>PostgreSQL database access controls lacking role-based enforcement</li>
+          <li>Multi-factor authentication completely absent across all critical systems</li>
+          <li>Default credentials used throughout infrastructure components</li>
+        </ul>
+        <p><strong>Risk Score:</strong> 16 | <strong>Action Required:</strong> Immediate (0-30 days)</p>
+      </div>
+      <div class="card risk-medium">
+        <div class="risk-badge">MEDIUM RISK</div>
+        <h3>Security Framework Gaps (8 Controls)</h3>
+        <ul>
+          <li>Network segmentation gaps between public and private boundaries</li>
+          <li>Firewall and endpoint protection deficiencies</li>
+          <li>CI/CD pipeline security gaps including branch protection</li>
+          <li>Data classification scheme not implemented for complex datasets</li>
+        </ul>
+        <p><strong>Risk Score:</strong> 9-12 | <strong>Action Required:</strong> 30-90 days</p>
+      </div>
+      <div class="card risk-low">
+        <div class="risk-badge">LOW-MEDIUM RISK</div>
+        <h3>Compliance & Governance (12 Controls)</h3>
+        <ul>
+          <li>GDPR compliance gaps in privacy policy and consent mechanisms</li>
+          <li>Incident response procedures not formally documented</li>
+          <li>Repository access management policies undefined</li>
+          <li>Risk management framework documentation missing</li>
+        </ul>
+        <p><strong>Risk Score:</strong> 4-8 | <strong>Action Required:</strong> 60-120 days</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="recommendations">
+    <h2>Strategic Recommendations</h2>
+    
+    <div class="priority-group">
+      <h3 style="color: #dc3545; margin-bottom: 0.5rem;">🔴 Priority 1 - Critical (Immediate Action Required)</h3>
+      <ul style="margin-bottom: 2rem;">
+        <li>Implement Multi-Factor Authentication across all critical systems (Airflow, MinIO, PostgreSQL)</li>
+        <li>Eliminate default credentials and configure role-based access controls for PostgreSQL</li>
+      </ul>
+    </div>
+
+    <div class="priority-group">
+      <h3 style="color: #fd7e14; margin-bottom: 0.5rem;">🟠 Priority 2 - High (30-90 days)</h3>
+      <ul style="margin-bottom: 2rem;">
+        <li>Configure network segmentation and firewall rules for Docker services</li>
+        <li>Enable GitHub branch protection and automated security scanning</li>
+      </ul>
+    </div>
+
+    <div class="priority-group">
+      <h3 style="color: #ffc107; margin-bottom: 0.5rem;">🟡 Priority 3 - Medium (60-120 days)</h3>
+      <ul style="margin-bottom: 2rem;">
+        <li>Implement GDPR compliance measures including privacy policy and consent banner</li>
+        <li>Establish formal risk management framework and incident response procedures</li>
+      </ul>
+    </div>
+
+    <div class="priority-group">
+      <h3 style="color: #007bff; margin-bottom: 0.5rem;">🔵 Priority 4 - Low (90+ days)</h3>
+      <ul style="margin-bottom: 2rem;">
+        <li>Deploy comprehensive logging and monitoring capabilities</li>
+      </ul>
+    </div>
+
+    <p style="margin-top: 2rem; font-style: italic; color: #666;">More detailed implementation plans can be found in the attachments section below.</p>
+  </section>
+
+  <section id="timeline">
+    <h2>Implementation Timeline</h2>
+    <p>The remediation strategy follows a structured four-phase approach prioritizing critical security controls:</p>
+    
+    <div class="timeline-item">
+      <div class="timeline-header">
+        <div class="phase-badge">PHASE 1</div>
+        <h3 class="timeline-title">Critical Remediation</h3>
+      </div>
+      <div class="timeline-meta"><strong>Duration:</strong> 0-30 days | <strong>Effort:</strong> 36-48 hours | <strong>Priority:</strong> Urgent</div>
+      <p>Immediate elimination of high-risk vulnerabilities including authentication controls and network security implementation. Focus on MFA deployment, credential management, and basic network segmentation.</p>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-header">
+        <div class="phase-badge">PHASE 2</div>
+        <h3 class="timeline-title">Security Framework Development</h3>
+      </div>
+      <div class="timeline-meta"><strong>Duration:</strong> 30-90 days | <strong>Effort:</strong> 34-42 hours | <strong>Priority:</strong> High</div>
+      <p>Development of comprehensive security infrastructure including CI/CD hardening, automated vulnerability scanning, infrastructure security hardening, and data classification implementation.</p>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-header">
+        <div class="phase-badge">PHASE 3</div>
+        <h3 class="timeline-title">Governance Implementation</h3>
+      </div>
+      <div class="timeline-meta"><strong>Duration:</strong> 60-120 days | <strong>Effort:</strong> 26-38 hours | <strong>Priority:</strong> Medium</div>
+      <p>Establishment of risk management frameworks, incident response capabilities, GDPR compliance measures, and privacy policy implementation with consent management.</p>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-header">
+        <div class="phase-badge">PHASE 4</div>
+        <h3 class="timeline-title">Operational Enhancement</h3>
+      </div>
+      <div class="timeline-meta"><strong>Duration:</strong> 90+ days | <strong>Effort:</strong> 30-44 hours | <strong>Priority:</strong> Low</div>
+      <p>Implementation of monitoring, logging, backup systems, access management policies, and sustainable security practices for long-term maintenance.</p>
+    </div>
+  </section>
+
+  <section id="attachments">
+    <h2>Audit Deliverables</h2>
+    <div class="attachments">
+      <p>Complete audit documentation and supporting materials (click to expand):</p>
+
+      <!-- Accordion for Audit Planning -->
+      <button class="accordion">Audit Planning & Documentation</button>
+      <div class="panel">
+        <a href="audit_planning.pdf" download>📄 Audit Planning Document</a>
+        <a href="audit_check_list.pdf" download>📄 Audit Check List</a>
+        <a href="audit_report_full.pdf" download>📄 Complete Audit Report</a>
+      </div>
+
+      <!-- Accordion for Risk Assessment -->
+      <button class="accordion">Risk Analysis & Assessment</button>
+      <div class="panel">
+        <a href="risk_register.xlsx" download>📄 Risk Register (xlsx)</a>
+        <a href="audit_results.xlsx" download>📄 Audit Results (xlsx)</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Security Audit conducted by <strong>Khuong Nguyen</strong> | Nguyen Auditing Services</p>
+    <p>Project Link: <a href="https://nbkhuong.github.io/german-election-2025/" style="color: #ffcc00;">German Election 2025 Data Lakehouse</a></p>
+  </footer>
+
+  <script>
+    // Mobile Navigation Toggle
+    const navToggle = document.getElementById('nav-toggle');
+    const navMenu = document.getElementById('nav-menu');
+
+    navToggle.addEventListener('click', () => {
+      navMenu.classList.toggle('active');
+    });
+
+    // Accordion Functionality
+    const acc = document.querySelectorAll(".accordion");
+    acc.forEach(button => {
+      button.addEventListener("click", function() {
+        this.classList.toggle("active");
+        const panel = this.nextElementSibling;
+        if (panel.style.maxHeight) {
+          panel.style.maxHeight = null;
+        } else {
+          panel.style.maxHeight = panel.scrollHeight + "px";
+        }
+      });
+    });
+
+    // Smooth Scrolling for Navigation Links
+    document.querySelectorAll('.nav-menu a').forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href').substring(1);
+        const targetSection = document.getElementById(targetId);
+        if (targetSection) {
+          targetSection.scrollIntoView({ behavior: 'smooth' });
+          // Close mobile menu after clicking
+          navMenu.classList.remove('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
